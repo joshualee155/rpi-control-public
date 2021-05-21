@@ -1,0 +1,71 @@
+from web.core.api import Looper, Conditional
+from web.components.api import *
+from transmitter import transmit_code
+
+def execute(channel, upDown):
+    """
+    Mock function to execute commands 
+    """
+    code = channel.lower().replace(' ', '_')+'_'+upDown.lower()
+    print(f"executing {code}")
+    transmit_code(code)
+
+enamldef Viewer(Html): viewer:
+    attr request # The tornado request
+    attr response # The tornado response handler
+    attr loading = False
+    Head:
+        Title:
+            text = "Raspberry Pi Curtain"
+        Script:
+            src = 'https://code.jquery.com/jquery-3.3.1.min.js'
+            type = 'text/javascript'
+        Script:
+            src = '/static/app.js'
+            type = 'text/javascript'
+        Script:
+            text = '''
+            $(document).ready(function(){
+                initViewer('%s');
+            });
+            '''% viewer.id
+
+        Link:
+            rel="stylesheet"
+            href="//stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+            attrs = dict(
+                integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS",
+                crossorigin="anonymous"
+            )
+    Body:
+        cls = 'container'
+        Div:
+            cls = 'card'
+            Div:
+                cls = 'card-header'
+                text = "Select Channel"
+            Div:
+                cls = 'card-body'
+                P:
+                    Select: select:
+                        Option:
+                            pass
+                        Looper:
+                            iterable = ['Channel 1', 'Channel 2', 'Channel 3', 'Channel All']
+                            Option:
+                                value = loop_item
+                                text = loop_item
+                Button:
+                    text = "Up"
+                    cls = 'btn btn-info'
+                    clickable = True
+                    clicked ::
+                        if select.value:
+                            execute(select.value, 'Up')
+                Button:
+                    text = "Down"
+                    cls = 'btn btn-info'
+                    clickable = True
+                    clicked ::
+                        if select.value:
+                            execute(select.value, 'Down')
